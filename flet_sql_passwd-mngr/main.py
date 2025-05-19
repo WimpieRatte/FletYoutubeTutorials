@@ -30,18 +30,24 @@ def main(page: ft.Page):
     def handle_new_pass(service, account):
         
         def open_dlg(*e):
-            page.dialog = dlg_modal
-            dlg_modal.open = True
-            page.update()
+            """Opens the popup for a new password to be entered"""
+            # page.dialog = dlg_modal
+            # page.update()
+            page.open(dlg_modal)
             
-        def close_dlg(*e):
-            dlg_modal.open = False
-            page.update()
+        def close_dlg(new_id = -1, *e):
+            """Closes the new password popup"""
+            # dlg_modal.open = False
+            # page.update()
+            page.close(dlg_modal)
+            if new_id != -1:
+                # add new item to grid:
+                add_data_row(get_by_id(new_id))
             
         def submit(*e):
             password = new_password_field.value
-            create_pass(service, account, password)
-            close_dlg()
+            new_id = create_pass(service, account, password)
+            close_dlg(new_id)
             
         new_password_field = ft.TextField(label="New Password", width=200, height=40)
         
@@ -66,13 +72,15 @@ def main(page: ft.Page):
     def handle_account_long_press(my_id, account):
         
         def close_dlg(*e):
-            dlg_modal.open = False
-            page.update()
+            # dlg_modal.open = False
+            # page.update()
+            page.close(dlg_modal)
             
         def open_dlg(*e):
-            page.dialog = dlg_modal
-            dlg_modal.open = True
-            page.update()
+            # page.dialog = dlg_modal
+            # dlg_modal.open = True
+            # page.update()
+            page.open(dlg_modal)
             
         def edit_entry(e):
             password = change_password_field.value
@@ -118,7 +126,7 @@ def main(page: ft.Page):
         
         data_rows = [default]
         
-        if data != None:
+        if data != None and len(data) > 0:
             data_rows = [default]
             for entry in data:
                 my_id=entry[0]
@@ -136,8 +144,7 @@ def main(page: ft.Page):
                         ))
                     ]
                 )
-                
-            data_rows.append(row)
+                data_rows.append(row)
         
         table = ft.DataTable(
             width=350,
@@ -151,6 +158,30 @@ def main(page: ft.Page):
         
         return table
     
+    def add_data_row(entry):
+        """Adds a single row to the my_data variable, which should show up in the data table"""
+        if entry == None:
+            return  # nothing to add
+        
+        if len(entry) > 0:
+            my_id=entry[0]
+            service=entry[1]
+            account=entry[2]
+            password=entry[3]
+            
+            row = ft.DataRow(
+                cells=[
+                    ft.DataCell(ft.Text(service)),
+                    ft.DataCell(ft.TextButton(
+                        account,
+                        on_click=lambda _: handle_account_click(password),
+                        on_long_press=lambda _: handle_account_long_press(my_id, account)
+                    ))
+                ]
+            )
+                
+            my_data.append(row)
+    
     header = ft.Text("Welcome to MyPass")
     search_box = ft.TextField(
         label="Search",
@@ -159,7 +190,7 @@ def main(page: ft.Page):
         on_change=handle_search_change)
     switch_row = [ft.Text("Account"), ft.Switch(value=False), ft.Text("Service")]
 
-    my_data = [my_data_table()]
+    my_data = [my_data_table(get_all())]
     
     
     page.add(

@@ -14,16 +14,17 @@ def close_db():
     conn.close()
     
 def create_pass(service, handle, password):
-    """Inserts a new password into mypass."""
+    """Inserts a new password into mypass. Returns the newly inserted id."""
     try:
         cur.execute("""
             INSERT INTO mypass(service, handle, password)
             VALUES(?, ?, ?)    
             """, (service, handle, password))
+        id = cur.lastrowid
         conn.commit()
-        return 0
+        return id
     except:
-        return 1
+        return -1
     
 def change_pass(id, password):
     """Changes a password for a specific id"""
